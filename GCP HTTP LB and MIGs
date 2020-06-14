@@ -36,7 +36,7 @@ gcloud beta compute instance-groups managed create europe-north1-group --base-in
 
 gcloud beta compute instance-groups managed set-autoscaling "europe-north1-group" --region "europe-north1" --cool-down-period "60" --max-num-replicas "4" --min-num-replicas "2" --target-cpu-utilization "0.6"
 
-#Step 5 - Create an HTTP Load Balancer (SEPARATE SCRIPT AS "GCP GLOBAL HTTP LB"), summary steps:
+#Step 5 - Create an HTTP Load Balancer (SEPARATE SCRIPT AS "Creating a GCP GLOBAL HTTP LB"), summary steps:
   Set named ports for instance groups
   Create backend service and add backends
   Create load balancer URL map and frontend
