@@ -1,0 +1,10 @@
+#Reproduction steps begin simulated DDoS attack:
+
+    1. From the web console, go to the top left menu -- Compute Engine:
+     
+      1.1 SSH into ddos-attack instance
+      1.2 Enter the below command to open 1000 concurrent connections to the application
+      1.3 Substitute your frontend IP address for (your-frontend-ip)
+      1.4 ab -n 10000000 -c 1000 http://(your-frontend-ip)/
+    
+    2. Allow the command to run, and go back to your web console.
