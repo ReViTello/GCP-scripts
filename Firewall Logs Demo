@@ -1,0 +1,30 @@
+#Demonstration of working with firewall logs. 
+
+  #Step 1 - Create custom VPC, subnet, web server GCE instance and firewall to enable HTTP access:
+  
+    gcloud compute networks create custom-network --subnet-mode=custom
+
+    gcloud compute networks subnets create subnet-a --network=custom-network --region=us-central1 --range=[IP_Address_Range]
+
+    gcloud compute instances create web-server --zone=us-central1-a --machine-type=f1-micro --subnet=subnet-a \
+    --metadata=startup-script=
+    sudo\ apt-get\ update$'\n'
+    sudo\ apt-get\ install\ apache2\ -y$'\n'
+    echo\ \'\<\!doctype\ html\>\<html\>\<body\>\<h1\>Hello\ GitHuber\ !\</h1\>\</body\>\</html\>\'\ \|\ 
+    sudo\ tee\ /var/www/html/index.html --tags=http-server
+
+    gcloud compute firewall-rules create custom-network-allow-http --direction=INGRESS --priority=1000 \
+    --network=custom-network --action=ALLOW --rules=tcp:80 --source-ranges=0.0.0.0/0 --target-tags=http-server
+  
+  #Step 2 - BigQuery query to view IP address of connection attempts, port attempted, and location if applicable:
+  
+  #standardSQL
+    SELECT  
+      jsonPayload.connection.src_ip,
+      jsonPayload.connection.dest_port,
+      jsonPayload.remote_location.continent,
+      jsonPayload.remote_location.country,
+      jsonPayload.remote_location.region,
+      jsonPayload.rule_details.action
+    FROM `denied_logs.(your-table-name-here)` 
+    ORDER BY jsonPayload.connection.dest_port
