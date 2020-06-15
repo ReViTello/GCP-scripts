@@ -1,0 +1,43 @@
+#Demonstration of enabling, generating, and viewing VPC flow logs:
+
+  #Step 1 - Create web server GCE instance and firewall to enable HTTP access:
+  
+  gcloud compute instances create web-server --zone=us-central1-a --machine-type=f1-micro --subnet=subnet-a \
+  --metadata=startup-script= 
+  sudo\ apt-get\ update$'\n'
+  sudo\ apt-get\ install\ apache2\ -y$'\n'
+  echo\ \'\<\!doctype\ html\>\<html\>\<body\>\<h1\>Hello\ GitHuber\!\</h1\>\</body\>\</html\>\'\ \|\ 
+  sudo\ tee\ /var/www/html/index.html \ 
+  --tags=http-server && gcloud compute firewall-rules create custom-network-allow-http --direction=INGRESS --priority=1000 \
+  --network=custom-network --action=ALLOW --rules=tcp:80 --source-ranges=0.0.0.0/0 --target-tags=http-server
+  
+  #Step 2 - Send 500 curl commands to website:
+
+  for ((i=1;i<=500;i++)); do curl (website-ip-address); done
+
+  #Step 3 - BigQuery query to view count of access attempts from external resources, 
+  (you must substitute your table in the from table field, as yours will be different):
+  
+  #standardSQL
+    SELECT
+      jsonPayload.connection.src_ip,
+    COUNT( jsonPayload.connection.src_ip ) AS total_requests,
+    SUM(CAST(jsonPayload.bytes_sent AS INT64)) AS bytes,
+      jsonPayload.dest_instance.vm_name,
+      jsonPayload.connection.dest_port,
+      jsonPayload.connection.protocol,
+      jsonPayload.src_location.country,
+      jsonPayload.src_location.city
+    FROM
+      `flowlogs.(your-table-name)`
+    WHERE jsonPayload.reporter = 'DEST'
+    GROUP BY
+      jsonPayload.connection.src_ip,
+      jsonPayload.dest_instance.vm_name,
+      jsonPayload.connection.dest_ip,
+      jsonPayload.connection.dest_port,
+      jsonPayload.connection.protocol,
+      jsonPayload.src_location.country,
+      jsonPayload.src_location.city
+    ORDER BY
+      total_requests DESC
